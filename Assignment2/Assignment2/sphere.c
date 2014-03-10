@@ -1,15 +1,37 @@
-#include <stdlib.h>
-#include <GL/glut.h>
-#include <math.h>
+#include "sphere.h"
 
-static GLfloat theta[] = { 0.0, 0.0, 0.0 };
-static GLint axis = 2;
+void drawSphere(double r, int lats, int longs) {
+	int i, j;
+	for (i = 0; i <= lats; i++) {
+		double lat0 = M_PI * (-0.5 + (double)(i - 1) / lats);
+		double z0 = sin(lat0);
+		double zr0 = cos(lat0);
 
-void sphere()
-{
+		double lat1 = M_PI * (-0.5 + (double)i / lats);
+		double z1 = sin(lat1);
+		double zr1 = cos(lat1);
+
+		glBegin(GL_QUAD_STRIP);
+		for (j = 0; j <= longs; j++) {
+			double lng = 2 * M_PI * (double)(j - 1) / longs;
+			double x = cos(lng);
+			double y = sin(lng);
+
+			glNormal3f(x * zr0, y * zr0, z0);
+			glVertex3f(x * zr0, y * zr0, z0);
+			glNormal3f(x * zr1, y * zr1, z1);
+			glVertex3f(x * zr1, y * zr1, z1);
+
+		}
+		glEnd();
+
+	}
+
+}
+
+void drawSphere2(double r, int lats, int longs) {
 
 	double x, y, z, thet, phi;
-	int nlat, nlong;
 	double c;
 	x = y = 0;
 	z = 1;
@@ -53,15 +75,4 @@ void sphere()
 		}
 		glEnd();
 	}
-}
-
-void spinSphere()
-{
-
-	/* Idle callback, spin cube 2 degrees about selected axis */
-
-	theta[axis] += 2.0;
-	if (theta[axis] > 360.0) theta[axis] -= 360.0;
-	/* display(); */
-	glutPostRedisplay();
 }
