@@ -1,21 +1,4 @@
 /*----------------------------------------------------------------------------------------
-*
-*	project:	05_Overlay1
-*	author:		Rob Bateman
-*	note:
-*				Quite often you may want to draw an overlay of 2D graphics over your 3D
-*				Data. This source file gives an example of how to do it.
-*
-*				Essentually all you have to do is to set a 3D viewing projection, draw
-*				your 3D items, switch to orthographic display and then draw your 2D items
-*				over the top.
-*
-*				In order to make the code a bit more readable, two functions have been
-*				provided, Draw2D() & Draw3D(). These are called from within the Draw()
-*				function.
-*/
-
-/*----------------------------------------------------------------------------------------
 *	Includes
 */
 
@@ -27,28 +10,20 @@
 
 
 
-/*----------------------------------------------------------------------------------------
-*	Global Variables
-*/
 
-/*
-*	A structure to represent the mouse information
-*/
 struct Mouse
 {
-	int x;		/*	the x coordinate of the mouse cursor	*/
-	int y;		/*	the y coordinate of the mouse cursor	*/
-	int lmb;	/*	is the left button pressed?		*/
-	int mmb;	/*	is the middle button pressed?	*/
-	int rmb;	/*	is the right button pressed?	*/
+	int x;		
+	int y;		
+	int lmb;	
+	int mmb;	
+	int rmb;	
 
-	int xpress; /*	stores the x-coord of when the first button press occurred	*/
-	int ypress; /*	stores the y-coord of when the first button press occurred	*/
+	int xpress; 
+	int ypress; 
 };
 
-/*
-*	rename the structure from "struct Mouse" to just "Mouse"
-*/
+
 typedef struct Mouse Mouse;
 
 /*
@@ -62,18 +37,15 @@ Mouse TheMouse = { 0, 0, 0, 0, 0 };
 int winw = 640;
 int winh = 480;
 
+// a point data type
+typedef GLfloat point2[2];
 
-/*----------------------------------------------------------------------------------------
-*	Button Stuff
-*/
+GLfloat interp = 0.0;
 
-/*
-*	We will define a function pointer type. ButtonCallback is a pointer to a function that
-*	looks a bit like this :
-*
-*	void func() {
-*	}
-*/
+
+
+
+
 typedef void(*ButtonCallback)();
 
 /*
@@ -81,53 +53,30 @@ typedef void(*ButtonCallback)();
 */
 struct Button
 {
-	int   x;							/* top left x coord of the button */
-	int   y;							/* top left y coord of the button */
-	int   w;							/* the width of the button */
-	int   h;							/* the height of the button */
-	int	  state;						/* the state, 1 if pressed, 0 otherwise */
-	int	  highlighted;					/* is the mouse cursor over the control? */
-	char* label;						/* the text label of the button */
-	ButtonCallback callbackFunction;	/* A pointer to a function to call if the button is pressed */
+	int   x;							
+	int   y;							
+	int   w;							
+	int   h;							
+	int	  state;						
+	int	  highlighted;					
+	char* label;						
+	ButtonCallback callbackFunction;	
 };
 typedef struct Button Button;
 
 
 
-/*----------------------------------------------------------------------------------------
-*	This is an example callback function. Notice that it's type is the same
-*	an the ButtonCallback type. We can assign a pointer to this function which
-*	we can store and later call.
-*/
+
 void TheButtonCallback()
 {
 	printf("I have been called\n");
 }
 
-/*----------------------------------------------------------------------------------------
-*	This is the button visible in the viewport. This is a shorthand way of
-*	initialising the structure's data members. Notice that the last data
-*	member is a pointer to the above function.
-*/
+
 Button MyButton = { 5, 5, 100, 25, 0, 0, "Button", TheButtonCallback };
 
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function draws a text string to the screen using glut bitmap fonts.
-*	\param	font	-	the font to use. it can be one of the following :
-*
-*					GLUT_BITMAP_9_BY_15
-*					GLUT_BITMAP_8_BY_13
-*					GLUT_BITMAP_TIMES_ROMAN_10
-*					GLUT_BITMAP_TIMES_ROMAN_24
-*					GLUT_BITMAP_HELVETICA_10
-*					GLUT_BITMAP_HELVETICA_12
-*					GLUT_BITMAP_HELVETICA_18
-*
-*	\param	text	-	the text string to output
-*	\param	x		-	the x co-ordinate
-*	\param	y		-	the y co-ordinate
-*/
+
 void Font(void *font, char *text, int x, int y)
 {
 	glRasterPos2i(x, y);
@@ -140,13 +89,7 @@ void Font(void *font, char *text, int x, int y)
 }
 
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function is used to see if a mouse click or event is within a button
-*			client area.
-*	\param	b	-	a pointer to the button to test
-*	\param	x	-	the x coord to test
-*	\param	y	-	the y-coord to test
-*/
+
 int ButtonClickTest(Button* b, int x, int y)
 {
 	if (b)
@@ -168,52 +111,31 @@ int ButtonClickTest(Button* b, int x, int y)
 	return 0;
 }
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function draws the specified button.
-*	\param	b	-	a pointer to the button to check.
-*	\param	x	-	the x location of the mouse cursor.
-*	\param	y	-	the y location of the mouse cursor.
-*/
+
 void ButtonRelease(Button *b, int x, int y)
 {
 	if (b)
 	{
-		/*
-		*	If the mouse button was pressed within the button area
-		*	as well as being released on the button.....
-		*/
+
 		if (ButtonClickTest(b, TheMouse.xpress, TheMouse.ypress) &&
 			ButtonClickTest(b, x, y))
 		{
-			/*
-			*	Then if a callback function has been set, call it.
-			*/
+
 			if (b->callbackFunction) {
 				b->callbackFunction();
 			}
 		}
 
-		/*
-		*	Set state back to zero.
-		*/
 		b->state = 0;
 	}
 }
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function draws the specified button.
-*	\param	b	-	a pointer to the button to check.
-*	\param	x	-	the x location of the mouse cursor.
-*	\param	y	-	the y location of the mouse cursor.
-*/
+
 void ButtonPress(Button *b, int x, int y)
 {
 	if (b)
 	{
-		/*
-		*	if the mouse click was within the buttons client area,
-		*	set the state to true.
-		*/
+
 		if (ButtonClickTest(b, x, y))
 		{
 			b->state = 1;
@@ -222,12 +144,7 @@ void ButtonPress(Button *b, int x, int y)
 }
 
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function draws the specified button.
-*	\param	b	-	a pointer to the button to check.
-*	\param	x	-	the x location of the mouse cursor.
-*	\param	y	-	the y location of the mouse cursor.
-*/
+
 void ButtonPassive(Button *b, int x, int y)
 {
 	if (b)
@@ -237,11 +154,7 @@ void ButtonPassive(Button *b, int x, int y)
 		*/
 		if (ButtonClickTest(b, x, y))
 		{
-			/*
-			*	If the cursor has just arrived over the control, set the highlighted flag
-			*	and force a redraw. The screen will not be redrawn again until the mouse
-			*	is no longer over this control
-			*/
+
 			if (b->highlighted == 0) {
 				b->highlighted = 1;
 				glutPostRedisplay();
@@ -249,11 +162,6 @@ void ButtonPassive(Button *b, int x, int y)
 		}
 		else
 
-			/*
-			*	If the cursor is no longer over the control, then if the control
-			*	is highlighted (ie, the mouse has JUST moved off the control) then
-			*	we set the highlighting back to false, and force a redraw.
-			*/
 		if (b->highlighted == 1)
 		{
 			b->highlighted = 0;
@@ -262,10 +170,7 @@ void ButtonPassive(Button *b, int x, int y)
 	}
 }
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function draws the specified button.
-*	\param	b	-	a pointer to the button to draw.
-*/
+
 void ButtonDraw(Button *b)
 {
 	int fontx;
@@ -356,149 +261,180 @@ void ButtonDraw(Button *b)
 	}
 }
 
-
 void DrawLetterH(){
-	/*
-	// Left
+
 	glBegin(GL_POLYGON);
-		glColor3f(0.4000f, 0.9804f, 0.5451f);
-		glVertex2f(200, 100);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(250, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
+		glVertex2f(200, 100);	
 		glVertex2f(250, 100);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
+		glVertex2f(250, 200);
 	glEnd();
+
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
 		glVertex2f(200, 100);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
 		glVertex2f(250, 200);
 		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(200, 250);
 	glEnd();
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
 		glVertex2f(250, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(250, 250);
 		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(200, 250);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		
 		glVertex2f(200, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.4000f, 0.9804f, 0.5451f);
 		glVertex2f(200, 350);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(250, 350);
 	glEnd();
+
 	glBegin(GL_POLYGON);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
+		glVertex2f(250, 250);
 		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(200, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(250, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.4000f, 0.9804f, 0.5451f);	
 		glVertex2f(250, 350);
 	glEnd();
-	*/
-	/*Middle*/
-	/*glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+
+	
+	glBegin(GL_POLYGON);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
 		glVertex2f(250, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(250, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
 		glVertex2f(350, 250);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
 		glVertex2f(250, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
 		glVertex2f(350, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(350, 250);
-	glEnd();*/
+	glEnd();
 
-	/*Right Side of the H*/
-	/*glBegin(GL_POLYGON);
+	glBegin(GL_POLYGON);
 		glColor3f(0.4000f, 0.9804f, 0.5451f);
 		glVertex2f(350, 100);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(400, 100);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(350, 200);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
+		glVertex2f(350, 200);	
 	glEnd();
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.4000f, 0.9804f, 0.5451f);
 		glVertex2f(400, 100);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
 		glVertex2f(350, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
 		glVertex2f(400, 250);
 	glEnd();
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(350, 200);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
+		glVertex2f(400, 250);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
 		glVertex2f(350, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(400, 250);
+		glVertex2f(350, 200);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
+		glColor3f(0.5019f, 0.6706f, 0.9608f);
 		glVertex2f(400, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(400, 350);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(350, 350);
 	glEnd();
+
 	glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(400, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(350, 250);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
 		glVertex2f(350, 350);
-	glEnd();*/
-
-	/*glBegin(GL_POLYGON);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(300, 100);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(250, 175);
-		glColor3f(0.1411f, 0.7764f, 0.7765f);
-		glVertex2f(350, 175);
-	glEnd();*/
-
-	glBegin(GL_POLYGON);
-		glColor3f(1, 0.0, 0.0);
-		glVertex2f(100, 100);
-		glVertex2f(100, 200);
-		glVertex2f(69.099, 95.1056);
+		glColor3f(0.9804f, 0.4863f, 0.0706f);
+		glVertex2f(350, 250);
 	glEnd();
-	
+
 
 }
 
 
-/*----------------------------------------------------------------------------------------
-*	This function will be used to draw an overlay over the 3D scene.
-*	This will be used to draw our fonts, buttons etc......
-*/
+void DrawStar(){
+	glBegin(GL_POLYGON);
+		glColor3f(1, 0, 0);
+		glVertex2f(300, 200);
+		glVertex2f(250, 125);
+		glVertex2f(350, 125);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(0, 1, 0);
+		glVertex2f(300, 200);
+		glVertex2f(350, 125);
+		glVertex2f(377.85, 210.72);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(0, 0, 1);
+		glVertex2f(300, 200);
+		glVertex2f(377.85, 210.72);
+		glVertex2f(300, 275);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(1, 1, 0);
+		glVertex2f(300, 200);
+		glVertex2f(300, 275);
+		glVertex2f(227.08, 222.01);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(1, 0, 1);
+		glVertex2f(300, 200);
+		glVertex2f(227.08, 222.01);
+		glVertex2f(250, 125);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+		glColor3f(1, 0, 0);
+		glVertex2f(300, 50);
+		glVertex2f(250, 125);
+		glVertex2f(350, 125);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(0, 1, 0);
+		glVertex2f(352.98, 272.92);
+		glVertex2f(350, 125);
+		glVertex2f(377.85, 210.72);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(0, 0, 1);
+		glVertex2f(300, 200);
+		glVertex2f(377.85, 210.72);
+		glVertex2f(300, 275);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(1, 1, 0);
+		glVertex2f(300, 200);
+		glVertex2f(300, 275);
+		glVertex2f(227.08, 222.01);
+	glEnd();
+	glBegin(GL_POLYGON);
+		glColor3f(1, 0, 1);
+		glVertex2f(300, 200);
+		glVertex2f(227.08, 222.01);
+		glVertex2f(250, 125);
+	glEnd();
+}
+
+
+
 void Draw2D()
 {
 	DrawLetterH();
 	ButtonDraw(&MyButton);
 }
 
-/*----------------------------------------------------------------------------------------
-*	This is the main display callback function. It sets up the drawing for
-*	The 3D scene first then calls the Draw3D() function. After that it switches to
-*	an orthographic projection and calls Draw2D().
-*/
+
 void Draw()
 {
 	/*
@@ -538,14 +474,6 @@ void Draw()
 }
 
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function is called whenever a mouse button is pressed or released
-*	\param	button	-	GLUT_LEFT_BUTTON, GLUT_RIGHT_BUTTON, or GLUT_MIDDLE_BUTTON
-*	\param	state	-	GLUT_UP or GLUT_DOWN depending on whether the mouse was released
-*						or pressed respectivly.
-*	\param	x		-	the x-coord of the mouse cursor.
-*	\param	y		-	the y-coord of the mouse cursor.
-*/
 void MouseButton(int button, int state, int x, int y)
 {
 	/*
@@ -575,12 +503,6 @@ void MouseButton(int button, int state, int x, int y)
 		case GLUT_LEFT_BUTTON:
 			TheMouse.lmb = 1;
 			ButtonPress(&MyButton, x, y);
-		case GLUT_MIDDLE_BUTTON:
-			TheMouse.mmb = 1;
-			break;
-		case GLUT_RIGHT_BUTTON:
-			TheMouse.rmb = 1;
-			break;
 		}
 	}
 	else
@@ -594,27 +516,12 @@ void MouseButton(int button, int state, int x, int y)
 			TheMouse.lmb = 0;
 			ButtonRelease(&MyButton, x, y);
 			break;
-		case GLUT_MIDDLE_BUTTON:
-			TheMouse.mmb = 0;
-			break;
-		case GLUT_RIGHT_BUTTON:
-			TheMouse.rmb = 0;
-			break;
 		}
 	}
 
-	/*
-	*	Force a redraw of the screen. If we later want interactions with the mouse
-	*	and the 3D scene, we will need to redraw the changes.
-	*/
 	glutPostRedisplay();
 }
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function is called whenever the mouse cursor is moved AND A BUTTON IS HELD.
-*	\param	x	-	the new x-coord of the mouse cursor.
-*	\param	y	-	the new y-coord of the mouse cursor.
-*/
 void MouseMotion(int x, int y)
 {
 	/*
@@ -641,11 +548,6 @@ void MouseMotion(int x, int y)
 	glutPostRedisplay();
 }
 
-/*----------------------------------------------------------------------------------------
-*	\brief	This function is called whenever the mouse cursor is moved AND NO BUTTONS ARE HELD.
-*	\param	x	-	the new x-coord of the mouse cursor.
-*	\param	y	-	the new y-coord of the mouse cursor.
-*/
 void MousePassiveMotion(int x, int y)
 {
 	/*
@@ -665,12 +567,6 @@ void MousePassiveMotion(int x, int y)
 	*/
 	ButtonPassive(&MyButton, x, y);
 
-	/*
-	*	Note that I'm not using a glutPostRedisplay() call here. The passive motion function
-	*	is called at a very high frequency. We really don't want much processing to occur here.
-	*	Redrawing the screen every time the mouse moves is a bit excessive. Later on we
-	*	will look at a way to solve this problem and force a redraw only when needed.
-	*/
 }
 
 /*----------------------------------------------------------------------------------------
