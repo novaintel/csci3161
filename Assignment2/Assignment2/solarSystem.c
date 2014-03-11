@@ -1,102 +1,135 @@
-#include "sphere.h"
+#include <stdlib.h>
+#include <GL/glut.h>
+#include <math.h>
 
-double user_theta = 0;
-double user_height = 0;
+// Camera position
+float x = 0.0, y = 30.0; // initially 5 units south of origin
+float planetsizes[] = { 0.2439, 0.6, 0.637, 0.339, 4.0, 3.0, 1.54, 1.46, 0.153 };
+float planetcolors[9][3];
 
-void computeLocation() {
-	double x = 2 * cos(user_theta);     // my x-, y-, and z-coordinates
-	double y = 2 * sin(user_theta);
-	double z = user_height;
-	double d = sqrt(x * x + y * y + z * z); // distance to origin
+static float HourOfDay = 0.0;
+static float DayOfYear = 0.0;
+static float AnimateIncrement = 24.0;
 
-	glMatrixMode(GL_PROJECTION);        // Set projection parameters.
+
+void changeSize(int w, int h)
+{
+	float ratio = ((float)w) / ((float)h); // window aspect ratio
+	glMatrixMode(GL_PROJECTION); // projection matrix is active
+	glLoadIdentity(); // reset the projection
+	gluPerspective(45.0, ratio, 0.1, 100.0); // perspective transformation
+	glMatrixMode(GL_MODELVIEW); // return to modelview mode
+	glViewport(0, 0, w, h); // set viewport (drawing area) to entire window
+}
+
+void update(void)
+{
+	glutPostRedisplay(); // redisplay everything
+}
+
+GLfloat returnRandom(){
+	return (GLfloat)rand() / (GLfloat)RAND_MAX;
+}
+
+void drawSphere(float radius)
+{
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0.0);
+	glutSolidSphere(radius, 20, 20);
+	glPopMatrix();
+
+}
+
+void renderScene(void)
+{
+	int i, j;
+
+	// Clear color and depth buffers
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Update the animation state
+		HourOfDay += AnimateIncrement;
+		DayOfYear += AnimateIncrement / 24.0;
+
+		HourOfDay = HourOfDay - ((int)(HourOfDay / 24)) * 24;
+		DayOfYear = DayOfYear - ((int)(DayOfYear / 365)) * 365;
+
+	// Reset transformations
 	glLoadIdentity();
-	glFrustum(-d * 0.5, d * 0.5, -d * 0.5, d * 0.5, d - 1.1, d + 1.1);
-	gluLookAt(x, y, z, 0, 0, 0, 0, 0, 1);
 
-}
+	// Set the camera centered at (x,y,1) and looking along directional
+	// vector (lx, ly, 0), with the z-axis pointing up
+	gluLookAt(
+		x, y, -10.0,
+		x, y - 30, 0.0,
+		0.0, 0.0, -1.0);
 
-// Initializes information for drawing within OpenGL.
-void init() {
-	GLfloat sun_direction[] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat sun_intensity[] = { 0.7, 0.7, 0.7, 1.0 };
-	GLfloat lightColor[] = { 0.753, 0.749, 0.678, 1.0 };
+	glPushMatrix();
+	glTranslatef(0.0, 0, 0);
+	glColor3f(1.0, 1.0, 0.0);
+	drawSphere(6.96);
+	glPopMatrix();
 
-	glClearColor(0, 0, 0, 0.0);   // Set window color to white.
-	computeLocation();
-
-	glEnable(GL_DEPTH_TEST);            // Draw only closest surfaces
-
-
-	glEnable(GL_LIGHT0);                // Set up sunlight.
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
-	glLightfv(GL_LIGHT0, GL_POSITION, sun_direction);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, sun_intensity);
-
-	glEnable(GL_COLOR_MATERIAL);        // Configure glColor().
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-
-}
-
-// Draws the current image.
-void draw() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear window.
-	//glColor3f(0.714, 0.494, 0.3569);
-	glColor3f(1.0, 1.0, 0);
-	glShadeModel(GL_SMOOTH);
-	drawSphere(1.0, 10, 10); // glutSolidSphere(1.0, 10, 10);
-	glColor3f(1.0, 1.0, 1.0);
-	drawSphere(10.0, 10, 10); // glutSolidSphere(1.0, 10, 10);
-	glutSwapBuffers();
-
-}
-
-// Arranges that the window will be redrawn roughly every 40 ms.
-void idle() {
-	static int lastTime = 0;                // time of last redraw
-	int time = glutGet(GLUT_ELAPSED_TIME);  // current time
-
-	if (lastTime == 0 || time >= lastTime + 40) {
-		lastTime = time;
-		glutPostRedisplay();
-
+	for (j = 0; j < 9; j++) {
+		glRotatef(360.0*DayOfYear / 365.0, 0.0, 1.0, 0.0);
+		glTranslatef(4.0, j*7.5, 0.0);
+		glPushMatrix();						// Save matrix state
+		// Second, rotate the earth on its axis.
+		//		Use HourOfDay to determine its rotation.
+		glColor3f(returnRandom(), returnRandom(), returnRandom());
+		glRotatef(360.0*HourOfDay / 24.0, 0.0, 1.0, 0.0);
+		// Third, draw the earth as a wireframe sphere.
+		glColor3f(0.2, 0.2, 1.0);
+		drawSphere(planetsizes[j]);
+		glPopMatrix();
 	}
 
+	glutSwapBuffers(); // Make it all visible
 }
 
-// When window becomes visible, we want the window to
-// continuously repaint itself.
-void visible(int vis) {
-	glutIdleFunc(vis == GLUT_VISIBLE ? idle : NULL);
-
-}
-
-// Called when a "special" key is pressed
-void special(int k, int x, int y) {
-	switch (k) {
-	case GLUT_KEY_UP:    user_height += 0.1; break;
-	case GLUT_KEY_DOWN:  user_height -= 0.1; break;
-	case GLUT_KEY_LEFT:  user_theta += 0.1; break;
-	case GLUT_KEY_RIGHT: user_theta -= 0.1; break;
-
+void pressSpecialKey(int key)
+{
+	switch (key) {
+	case GLUT_KEY_UP: y -= 1.0; break;
+	case GLUT_KEY_DOWN: y += 1.0; break;
+	case GLUT_KEY_LEFT: x += 1.0; break;
+	case GLUT_KEY_RIGHT: x -= 1.0; break;
 	}
-	computeLocation();
-	glutPostRedisplay();
-
 }
 
-int main(int argc, char **argv) {
+void init(){
+	int i, j;
+	for (i = 0; i < 9; i++){
+		for (j = 0; j < 3; j++){
+			planetcolors[i][j] = returnRandom();
+		}
+	}
+}
+
+
+int main(int argc, char **argv)
+{
+	// general initializations
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowPosition(50, 100);    // Set up display window.
-	glutInitWindowSize(1024, 768);
-	glutCreateWindow("Sphere");
-
 	init();
-	glutDisplayFunc(draw);
-	glutVisibilityFunc(visible);
-	//glutSpecialFunc(special);
-	glutMainLoop();
-	return 0;
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(800, 400);
+	glutCreateWindow("Solar System");
 
+	// register callbacks
+	glutReshapeFunc(changeSize); // window reshape callback
+	glutDisplayFunc(renderScene); // (re)display callback
+	glutIdleFunc(update); // incremental update 
+	glutSpecialFunc(pressSpecialKey); // process special key pressed
+
+
+	// OpenGL init
+	glEnable(GL_DEPTH_TEST);
+
+	// enter GLUT event processing cycle
+	glutMainLoop();
+
+	return 0; // this is just to keep the compiler happy
 }

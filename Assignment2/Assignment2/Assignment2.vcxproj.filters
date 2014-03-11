@@ -15,19 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="earth.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sphere.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="solarSystem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="sphere.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
