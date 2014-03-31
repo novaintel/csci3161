@@ -35,7 +35,7 @@ void myResize(int newWidth, int newHeight)
 	glLoadIdentity();
 
 	// gluPerspective(fovy, aspect, near, far)
-	gluPerspective(45, (float)windowWidth / (float)windowHeight, 1, 20);
+	gluPerspective(45, (float)windowWidth / (float)windowHeight, 1, 100);
 
 }
 
@@ -56,14 +56,6 @@ void init() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	// Set the camera lens so that we have a perspective viewing volume whose
-	// horizontal bounds at the near clipping plane are -2..2 and vertical
-	// bounds are -1.5..1.5.  The near clipping plane is 1 unit from the camera
-	// and the far clipping plane is 40 units away.
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glFrustum(-2, 2, -1.5, 1.5, 1, 40);
-
 	// Set up transforms so that the tetrahedron which is defined right at
 	// the origin will be rotated and moved into the view volume.  First we
 	// rotate 70 degrees around y so we can see a lot of the left side.
@@ -72,7 +64,7 @@ void init() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0, 0, -15);
-	glRotatef(50, 1, 0, 0);
+	glRotatef(10, 1, 0, 0);
 	glRotatef(70, 0, 1, 0);
 }
 
@@ -105,7 +97,7 @@ void keyboard(unsigned char key, int x, int y)
 // does application initialization; enters the main event loop.
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glutInitWindowPosition(80, 80);
 	glutInitWindowSize(800, 600);
 	id = glutCreateWindow("A Simple Tetrahedron");
