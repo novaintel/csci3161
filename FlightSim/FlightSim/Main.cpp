@@ -1,5 +1,6 @@
 #include <math.h>
 #include "BaseScene.h"
+#include "objectReader.h"
 
 
 // window dimensions
@@ -12,6 +13,9 @@ void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	drawBase();
+
+	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
+	drawPlane();
 
 	glFlush();
 }
@@ -42,9 +46,11 @@ void myResize(int newWidth, int newHeight)
 
 void init() {
 
+	objectReaderInit();
+
 	// Set the current clear color to sky blue and the current drawing color to
 	// white.
-	glClearColor(0.1, 0.39, 0.88, 1.0);
+	//glClearColor(0.1, 0.39, 0.88, 1.0);
 	glColor3f(1.0, 1.0, 1.0);
 
 	// Tell the rendering engine not to draw backfaces.  Without this code,
@@ -63,7 +69,7 @@ void init() {
 	// down a bit.  Then we move the object back 3 units "into the screen".
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0, 0, -15);
+	glTranslatef(0, 0, -5);
 	glRotatef(10, 1, 0, 0);
 	glRotatef(70, 0, 1, 0);
 }

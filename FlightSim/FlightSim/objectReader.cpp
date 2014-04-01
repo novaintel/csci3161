@@ -5,21 +5,37 @@ size_t size = 100;
 int count = 0;
 
 void readFile(char* fileName){
-	int i, x,y,z;
-	char *inname = "test.txt";
-	std::ifstream infile(inname);
-
-	if (!infile) {
-		exit(1);
-	}
-	while (infile >> i) {
-		if (i == 'v'){
-			infile >> x;
-			infile >> y;
-			infile >> z;
-			pushPoint(x, y, z);
+	std::ifstream myReadFile;
+	myReadFile.open(fileName);
+	char output[100];
+	GLfloat x, y, z;
+	
+	if (myReadFile.is_open()) {
+		while (!myReadFile.eof()) {
+			
+			myReadFile >> output;
+			if (output[0] == 'v'){
+				myReadFile >> x;
+				myReadFile >> y;
+				myReadFile >> z;
+				pushPoint(x, y, z);
+			}
+			else{
+				myReadFile.close();
+				return;
+			}
+			
 		}
 	}
+	myReadFile.close();
+}
+
+void drawPlane(){
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, points);
+	glDrawArrays(GL_LINE_LOOP, 0, count);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glutSwapBuffers();
 }
 
 void pushPoint(GLfloat x, GLfloat y, GLfloat z)
