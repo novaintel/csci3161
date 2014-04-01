@@ -12,9 +12,7 @@ int id;
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	drawBase();
-
-	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
+	//drawBase();
 	drawPlane();
 
 	glFlush();
@@ -47,6 +45,7 @@ void myResize(int newWidth, int newHeight)
 void init() {
 
 	objectReaderInit();
+	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
 
 	// Set the current clear color to sky blue and the current drawing color to
 	// white.
