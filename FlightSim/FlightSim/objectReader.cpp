@@ -7,12 +7,13 @@ int count = 0;
 struct polygon {
 	GLfloat* vectorPoints;
 	GLfloat* normalPoints;
-	GLfloat red;
-	GLfloat blue;
-	GLfloat green;
+	GLfloat* colorPoints;
+	int numIndices;
 };
 
 std::vector<polygon> subObjects;
+std::vector<std::vector<int>> polygonPoints;
+std::vector<int> numPolygonObject;
 
 
 void readFile(char* fileName){
@@ -20,9 +21,8 @@ void readFile(char* fileName){
 	myReadFile.open(fileName);
 	char output[100];
 	char* cVert = new char[4];
-	polygon currentPolygon;
-	std::string currentline;
 	int currentVertex = 0, count = 0;
+	std::vector<int> currentPolygon;
 	GLfloat x, y, z;
 
 	if (myReadFile.is_open()) {
@@ -45,40 +45,23 @@ void readFile(char* fileName){
 
 				myReadFile >> output;
 			
-				while (!(output[0] == 'f' || output[0] == 'g')){
-//					if (output[0] == 'f' || output[0] == 'g')
-//						break;
+				while (!(output[0] == 'f' || output[0] == 'g' || myReadFile.eof())){
 					for (int i = 0; output[i] != '\0'; i++)
 						cVert[i] = output[i];
 					currentVertex = atoi(cVert);
-					if (currentVertex == 234)
-						std::cout << "Oh No!";
-
-					x = vectorPoints[3 * currentVertex - 3];
-					y = vectorPoints[3 * currentVertex - 2];
-					z = vectorPoints[3 * currentVertex - 1];
-
-					count++;
-					currentPolygon.vectorPoints[3 * count - 3] = x;
-					currentPolygon.vectorPoints[3 * count - 2] = y;
-					currentPolygon.vectorPoints[3 * count - 1] = z;
-
+					currentPolygon.push_back(currentVertex);
 					myReadFile >> output;
 				}
-				if (output[0] == 'f' || output[0] == 'g')
+				if (output[0] == 'f' || output[0] == 'g'){
+					polygonPoints.push_back(currentPolygon);
+					currentPolygon.clear();
+					count++;
 					continue;
-
+				}		
 			}
 			else if (output[0] == 'g'){
-				subObjects.push_back(currentPolygon);
-				count = 0;
-				currentPolygon = {
-					(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
-					(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
-					0.0,
-					0.0,
-					0.0,
-				};
+				if (count > 0)
+					numPolygonObject.push_back(count);
 				myReadFile >> output;
 			}
 			else
@@ -87,27 +70,67 @@ void readFile(char* fileName){
 		}
 	}
 	myReadFile.close();
-
+	numPolygonObject.push_back(count);
+	makePolygons();
 }
 
 
 void drawPlane(){
+	polygon currentPolygon;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 
-	for (std::vector<polygon>::iterator it = subObjects.begin(); it != subObjects.end(); ++it){
-		glVertexPointer(3, GL_FLOAT, 0, it->vectorPoints);
+	std::vector<polygon>::iterator row;
+	for (row = subObjects.begin(); row != subObjects.end(); row++) {
+		currentPolygon = *row;
+		glVertexPointer(3, GL_FLOAT, 0, currentPolygon.vectorPoints);
+		glNormalPointer(GL_FLOAT, 0, currentPolygon.normalPoints);
+		glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
+		glDrawArrays(GL_TRIANGLES, 0, currentPolygon.numIndices);
 	}
 
-	//	glVertexPointer(3, GL_FLOAT, 0, vectorPoints);
-	//	glNormalPointer(GL_FLOAT, 0, normalPoints);
-	glDrawArrays(GL_LINE_LOOP, 0, count);
-
+	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
+
+
 	glutSwapBuffers();
+}
+
+void makePolygons(){
+	std::vector< std::vector<int> >::iterator row;
+	std::vector<int>::iterator col;
+	polygon currentPolygon;
+	int count;
+	int colourCount = 0;
+	int objectCount = 0;
+
+	for (row = polygonPoints.begin(); row != polygonPoints.end(); row++) {
+		count = 0;
+		currentPolygon = {
+			(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
+			(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
+			(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
+			0,
+		};
+		for (col = row->begin(); col != row->end(); col++) {
+			count++;
+			currentPolygon.vectorPoints[3 * count - 3] = vectorPoints[3 * *col - 3];
+			currentPolygon.vectorPoints[3 * count - 2] = vectorPoints[3 * *col - 2];
+			currentPolygon.vectorPoints[3 * count - 1] = vectorPoints[3 * *col - 1];
+			currentPolygon.normalPoints[3 * count - 3] = normalPoints[3 * *col - 3];
+			currentPolygon.normalPoints[3 * count - 2] = normalPoints[3 * *col - 2];
+			currentPolygon.normalPoints[3 * count - 1] = normalPoints[3 * *col - 1];	
+			currentPolygon.numIndices++;
+			
+				
+		}
+		
+		subObjects.push_back(currentPolygon);
+	}
 }
 
 void pushVectorPoint(GLfloat x, GLfloat y, GLfloat z)

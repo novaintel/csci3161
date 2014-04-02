@@ -12,4 +12,5 @@ void pushNormalPoint(GLfloat x, GLfloat y, GLfloat z);
 void objectReaderInit();
 void readFile(char* fileName);
 void drawPlane();
+void makePolygons();
 

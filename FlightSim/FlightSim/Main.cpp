@@ -12,7 +12,8 @@ int id;
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	//drawBase();
+	drawBase();
+	
 	drawPlane();
 
 	glFlush();
@@ -46,6 +47,7 @@ void init() {
 
 	objectReaderInit();
 	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
+	//readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\propeller.txt");
 
 	// Set the current clear color to sky blue and the current drawing color to
 	// white.
@@ -70,7 +72,7 @@ void init() {
 	glLoadIdentity();
 	glTranslatef(0, 0, -5);
 	glRotatef(10, 1, 0, 0);
-	glRotatef(70, 0, 1, 0);
+	//glRotatef(70, 0, 1, 0);
 }
 
 void keyboard(unsigned char key, int x, int y)
