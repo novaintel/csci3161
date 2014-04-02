@@ -78,33 +78,38 @@ void readFile(char* fileName){
 void drawPlane(){
 	polygon currentPolygon;
 
-	/*glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0, 0, 0);
-	glRotatef(90, 0, 1, 0);*/
+	int colourCount = 0;
+	int objectCount = 0;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
+//	glEnableClientState(GL_COLOR_ARRAY);
 
 	std::vector<polygon>::iterator row;
 	for (row = subObjects.begin(); row != subObjects.end(); row++) {
 		currentPolygon = *row;
 		glVertexPointer(3, GL_FLOAT, 0, currentPolygon.vectorPoints);
 		glNormalPointer(GL_FLOAT, 0, currentPolygon.normalPoints);
-		glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
-		glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
+	//	glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
+		if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11)){}
+			//glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
+		else
+			glDrawArrays(GL_POLYGON, 0, currentPolygon.numIndices);
+		colourCount++;
+		if (objectCount < numPolygonObject.size()){
+			if (numPolygonObject[objectCount] == colourCount){
+				objectCount++;
+				colourCount == 0;
+			}
+		}
 	}
 
 
-//	glVertexPointer(3, GL_FLOAT, 0, vectorPoints);
-//	glNormalPointer(GL_FLOAT, 0, normalPoints);
 
-	glDisableClientState(GL_COLOR_ARRAY);
+//	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
-	//glPopMatrix();
+
 
 
 
@@ -136,13 +141,13 @@ void makePolygons(){
 			currentPolygon.normalPoints[3 * count - 2] = normalPoints[3 * *col - 2];
 			currentPolygon.normalPoints[3 * count - 1] = normalPoints[3 * *col - 1];	
 			currentPolygon.numIndices++;
-			if ((objectCount <= 3) || (objectCount >= 8 && objectCount <= 10) || (objectCount >= 12 && objectCount <= 13) || (objectCount >= 26 && objectCount <= 32)){
+			if ((objectCount <= 3) || (objectCount >= 8 && objectCount <= 10) || (objectCount >= 12 && objectCount <= 13) || (objectCount >= 26 && objectCount <= 33)){
 				currentPolygon.colorPoints[3 * count - 1] = 0.0;
 				currentPolygon.colorPoints[3 * count - 2] = 1.0;
 				currentPolygon.colorPoints[3 * count - 3] = 1.0;
 			}
-			else if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11) || (objectCount >= 14 && objectCount <= 25)){
-				currentPolygon.colorPoints[3 * count - 1] = 0.0;
+			else if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11) ){
+				currentPolygon.colorPoints[3 * count - 1] = 1.0;
 				currentPolygon.colorPoints[3 * count - 2] = 0.0;
 				currentPolygon.colorPoints[3 * count - 3] = 0.0;
 			}
@@ -151,16 +156,18 @@ void makePolygons(){
 				currentPolygon.colorPoints[3 * count - 2] = 0.0;
 				currentPolygon.colorPoints[3 * count - 3] = 1.0;
 			}
-			else if ((objectCount == 7)){
-				currentPolygon.colorPoints[3 * count - 1] = 0.0;
+			else if ((objectCount == 7) || (objectCount >= 14 && objectCount <= 25)){
+				currentPolygon.colorPoints[3 * count - 1] = 1.0;
 				currentPolygon.colorPoints[3 * count - 2] = 0.0;
-				currentPolygon.colorPoints[3 * count - 3] = 1.0;
+				currentPolygon.colorPoints[3 * count - 3] = 0.0;
+			}
+			else {
+				std::cout << "Oh no!" << objectCount << std::endl;
 			}
 			colourCount++;
 			if (objectCount < numPolygonObject.size()){
 				if (numPolygonObject[objectCount] == colourCount){
 					objectCount++;
-					colourCount == 0;
 				}
 			}
 				

@@ -2,6 +2,7 @@
 #include "BaseScene.h"
 #include "objectReader.h"
 
+float x = 0.0, y = 30.0;
 
 // window dimensions
 GLint windowWidth = 500;
@@ -13,8 +14,10 @@ void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	drawBase();
-	
+	glPushMatrix();
+	//glRotatef(90, 0.0, 1.0, 0.0);
 	drawPlane();
+	glPopMatrix();
 
 	glFlush();
 }
@@ -41,7 +44,6 @@ void myResize(int newWidth, int newHeight)
 	gluPerspective(45, (float)windowWidth / (float)windowHeight, 1, 100);
 
 }
-
 
 void init() {
 
@@ -77,6 +79,7 @@ void init() {
 
 void keyboard(unsigned char key, int x, int y)
 {
+	int x = 0, y = 0;
 	switch (key) {
 	case 'f': //toggle screenmode
 		if (!fullscreen){
@@ -94,6 +97,12 @@ void keyboard(unsigned char key, int x, int y)
 	case 'q':
 		glutDestroyWindow(id);
 		exit(0);
+		break;
+	case GLUT_KEY_UP:
+		y -= 1.0;
+		break;
+	case GLUT_KEY_DOWN: 
+		y += 1.0;
 		break;
 	}
 	glutPostRedisplay(); /* this redraws the scene without
