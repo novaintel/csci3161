@@ -19,15 +19,16 @@ void readFile(char* fileName){
 	std::ifstream myReadFile;
 	myReadFile.open(fileName);
 	char output[100];
+	char* cVert = new char[4];
 	polygon currentPolygon;
 	std::string currentline;
 	int currentVertex = 0, count = 0;
 	GLfloat x, y, z;
-	
+
 	if (myReadFile.is_open()) {
+		myReadFile >> output;
 		while (!myReadFile.eof()) {
 			
-			myReadFile >> output;
 			if (output[0] == 'v'){
 				myReadFile >> x;
 				myReadFile >> y;
@@ -41,42 +42,48 @@ void readFile(char* fileName){
 				pushNormalPoint(x, y, z);
 			}
 			else if (output[0] == 'f'){
-				currentVertex = 0;
-				count = 0;
-				
-				currentPolygon = {
-					(GLfloat*)realloc(vectorPoints, 3 * 12 * sizeof(GLfloat)),
-					(GLfloat*)realloc(normalPoints, 3 * 12 * sizeof(GLfloat)),
-					0.0,
-					0.0,
-					0.0,
-				};
 
 				myReadFile >> output;
-				while (output[0] != 'f'){
-					char* cVert = new char[4];
+			
+				while (!(output[0] == 'f' || output[0] == 'g')){
+//					if (output[0] == 'f' || output[0] == 'g')
+//						break;
 					for (int i = 0; output[i] != '\0'; i++)
 						cVert[i] = output[i];
 					currentVertex = atoi(cVert);
+					if (currentVertex == 234)
+						std::cout << "Oh No!";
+
 					x = vectorPoints[3 * currentVertex - 3];
 					y = vectorPoints[3 * currentVertex - 2];
 					z = vectorPoints[3 * currentVertex - 1];
-					
+
 					count++;
 					currentPolygon.vectorPoints[3 * count - 3] = x;
 					currentPolygon.vectorPoints[3 * count - 2] = y;
 					currentPolygon.vectorPoints[3 * count - 1] = z;
+
 					myReadFile >> output;
 				}
-				subObjects.push_back(currentPolygon);
+				if (output[0] == 'f' || output[0] == 'g')
+					continue;
+
 			}
 			else if (output[0] == 'g'){
+				subObjects.push_back(currentPolygon);
+				count = 0;
+				currentPolygon = {
+					(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
+					(GLfloat*)malloc(3 * 100 * sizeof(GLfloat)),
+					0.0,
+					0.0,
+					0.0,
+				};
 				myReadFile >> output;
-				std::cout << output << std::endl;
 			}
 			else
 				break;
-			
+			myReadFile >> output;
 		}
 	}
 	myReadFile.close();
@@ -93,8 +100,8 @@ void drawPlane(){
 		glVertexPointer(3, GL_FLOAT, 0, it->vectorPoints);
 	}
 
-//	glVertexPointer(3, GL_FLOAT, 0, vectorPoints);
-//	glNormalPointer(GL_FLOAT, 0, normalPoints);
+	//	glVertexPointer(3, GL_FLOAT, 0, vectorPoints);
+	//	glNormalPointer(GL_FLOAT, 0, normalPoints);
 	glDrawArrays(GL_LINE_LOOP, 0, count);
 
 	glDisableClientState(GL_NORMAL_ARRAY);
@@ -106,7 +113,7 @@ void drawPlane(){
 void pushVectorPoint(GLfloat x, GLfloat y, GLfloat z)
 {
 	count++;
-	if (count>size)
+	if (count > size)
 	{
 		size += 100;
 		vectorPoints = (GLfloat*)realloc(vectorPoints, 3 * size*sizeof(GLfloat));
