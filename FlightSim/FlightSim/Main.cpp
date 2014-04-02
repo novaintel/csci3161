@@ -79,7 +79,6 @@ void init() {
 
 void keyboard(unsigned char key, int x, int y)
 {
-	int x = 0, y = 0;
 	switch (key) {
 	case 'f': //toggle screenmode
 		if (!fullscreen){
