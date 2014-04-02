@@ -78,6 +78,12 @@ void readFile(char* fileName){
 void drawPlane(){
 	polygon currentPolygon;
 
+	/*glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslatef(0, 0, 0);
+	glRotatef(90, 0, 1, 0);*/
+
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -88,12 +94,17 @@ void drawPlane(){
 		glVertexPointer(3, GL_FLOAT, 0, currentPolygon.vectorPoints);
 		glNormalPointer(GL_FLOAT, 0, currentPolygon.normalPoints);
 		glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
-		glDrawArrays(GL_TRIANGLES, 0, currentPolygon.numIndices);
+		glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
 	}
+
+
+//	glVertexPointer(3, GL_FLOAT, 0, vectorPoints);
+//	glNormalPointer(GL_FLOAT, 0, normalPoints);
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	//glPopMatrix();
 
 
 
@@ -125,7 +136,33 @@ void makePolygons(){
 			currentPolygon.normalPoints[3 * count - 2] = normalPoints[3 * *col - 2];
 			currentPolygon.normalPoints[3 * count - 1] = normalPoints[3 * *col - 1];	
 			currentPolygon.numIndices++;
-			
+			if ((objectCount <= 3) || (objectCount >= 8 && objectCount <= 10) || (objectCount >= 12 && objectCount <= 13) || (objectCount >= 26 && objectCount <= 32)){
+				currentPolygon.colorPoints[3 * count - 1] = 0.0;
+				currentPolygon.colorPoints[3 * count - 2] = 1.0;
+				currentPolygon.colorPoints[3 * count - 3] = 1.0;
+			}
+			else if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11) || (objectCount >= 14 && objectCount <= 25)){
+				currentPolygon.colorPoints[3 * count - 1] = 0.0;
+				currentPolygon.colorPoints[3 * count - 2] = 0.0;
+				currentPolygon.colorPoints[3 * count - 3] = 0.0;
+			}
+			else if ((objectCount == 6)){
+				currentPolygon.colorPoints[3 * count - 1] = 1.0;
+				currentPolygon.colorPoints[3 * count - 2] = 0.0;
+				currentPolygon.colorPoints[3 * count - 3] = 1.0;
+			}
+			else if ((objectCount == 7)){
+				currentPolygon.colorPoints[3 * count - 1] = 0.0;
+				currentPolygon.colorPoints[3 * count - 2] = 0.0;
+				currentPolygon.colorPoints[3 * count - 3] = 1.0;
+			}
+			colourCount++;
+			if (objectCount < numPolygonObject.size()){
+				if (numPolygonObject[objectCount] == colourCount){
+					objectCount++;
+					colourCount == 0;
+				}
+			}
 				
 		}
 		
