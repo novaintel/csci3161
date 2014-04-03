@@ -83,18 +83,18 @@ void drawPlane(){
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
-//	glEnableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 
 	std::vector<polygon>::iterator row;
 	for (row = subObjects.begin(); row != subObjects.end(); row++) {
 		currentPolygon = *row;
 		glVertexPointer(3, GL_FLOAT, 0, currentPolygon.vectorPoints);
 		glNormalPointer(GL_FLOAT, 0, currentPolygon.normalPoints);
-	//	glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
-		if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11)){}
-			//glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
-		else
-			glDrawArrays(GL_POLYGON, 0, currentPolygon.numIndices);
+		glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
+		//if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11)){}
+		//	glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
+		//else
+		glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
 		colourCount++;
 		if (objectCount < numPolygonObject.size()){
 			if (numPolygonObject[objectCount] == colourCount){
@@ -106,14 +106,10 @@ void drawPlane(){
 
 
 
-//	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-
-
-
-	glutSwapBuffers();
 }
 
 void makePolygons(){
