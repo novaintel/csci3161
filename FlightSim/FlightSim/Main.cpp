@@ -210,7 +210,7 @@ void MouseFunction(int x, int y)
 	camera.vecRot.x += (float)diffy;
 	camera.vecRot.y += (float)diffx;
 
-	glutWarpPointer(640 / 2, 480 / 2);
+	//glutWarpPointer(640 / 2, 480 / 2);
 }
 
 
