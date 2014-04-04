@@ -1,210 +1,263 @@
+// Include files 
+#include <windows.h>
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <GL\freeglut.h>
-#include <stdarg.h>
-#include <iostream>
-#include <memory.h>
-#include <time.h>
-#include <fstream>
+#include <math.h>
 #include "BaseScene.h"
 #include "objectReader.h"
-using namespace std;
+#include <GL\freeglut.h>
 
-GLuint liliTexName;
 // Default Image dimensions
 int imageWidth = 640;
 int imageHeight = 480;
 
-
-//Callbacks
-void Display();
-void Idle();
-void Reshape(int w, int h);
-void Keyboard(unsigned char key, int, int);
-void MouseButton(int button, int state, int x, int y);
-void PassiveMouseMotion(int x, int y);
-
-//font
-GLvoid *font_style = GLUT_BITMAP_HELVETICA_12;
-
-// a cleanup function
-void quit(int i = 0);
-
-void main(int argc, char **argv)
+//-----------------------------------------------------------------------------
+// 3D vector
+//-----------------------------------------------------------------------------
+struct Vector3
 {
-	// INITIALIZE THE GLUT WINDOW
-	glutInit(&argc, argv);
-	glutInitWindowSize(imageWidth, imageHeight);
-	glutInitDisplayString("rgb double");
-	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Project #1");
+	float x, y, z;
+};
 
-	//SETUP GLUT CALLBACKS
-	cout << "Setting up callbacks... ";
-	glutDisplayFunc(Display);
-	glutKeyboardFunc(Keyboard);
-	glutMouseFunc(MouseButton);
-	//glutMotionFunc(MouseMotion);
-	glutReshapeFunc(Reshape);
-	glutIdleFunc(Idle);
-	glutPassiveMotionFunc(PassiveMouseMotion);
-	cout << "[completed]\n";
+//-----------------------------------------------------------------------------
+// Third Person Camera structure
+//-----------------------------------------------------------------------------
+struct ThirdPersonCamera_t
+{
+	struct Vector3 vecPos;
+	struct Vector3 vecRot;
+	float fRadius;			// Distance between the camera and the object.
+	float fLastX;
+	float fLastY;
+};
 
-	glEnable(GL_LIGHTING);
-	glEnable(GL_NORMALIZE);
-	glShadeModel(GL_FLAT);
-	glEnable(GL_LIGHT0);
+
+struct ThirdPersonCamera_t camera;
+
+//-----------------------------------------------------------------------------
+// Name: InitScene
+// Desc: Initializes extensions, textures, render states, etc. before rendering
+//-----------------------------------------------------------------------------
+int InitScene(void)
+{
+	//
+	// Set default render states
+	//
 
 
 	objectReaderInit();
 	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
-	
-	glutMainLoop();
+
+	// Enable depth testing 
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glClearDepth(1.0f);
+
+	// Enable lighting
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	// Enable colour material
+	glEnable(GL_COLOR_MATERIAL);
+
+	// Disable texture mapping (for now)
+	glDisable(GL_TEXTURE_2D);
+
+	// Disable blending
+	glDisable(GL_BLEND);
+
+	// Disable dithering
+	glDisable(GL_DITHER);
+
+	// Enable culling (counter clock wise)
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_CCW);
+
+	// Enable fog
+	//	glEnable( GL_FOG );
+
+	// Enable perspective correction and polygon smoothing
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+	//
+	// Initialize scene objects and geometry
+	//
+
+	memset(&camera, 0, sizeof(struct ThirdPersonCamera_t));
+	camera.fRadius = 10.0f;
+
+
+	return GL_TRUE;
 }
 
-
-// This function draws the scene
-float angle = 0;
-float zpos = 0;
-float eyex = -10, eyey = 2, eyez, lookdirx = 10;
-float lookdirz = -1;
-float sidediry, sidedirz = 0;
-float sidedirx = 1;
-GLfloat viewMatrix[16];
-void Display()
+void DisplayFunction(void)
 {
-	glEnable(GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST);
-	if (angle>360)
-		angle = 0;
-	angle += .1;
+	int iViewport[4];
 
-	// clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-
+	// Clear the screen and depth buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	// Reset matrices to default position, scale, and rotation
 	glLoadIdentity();
-	//SIMPLE FIRST PERSON CAMERA**********************************************************************************
-	// There are a lot of ways to make this camera better. This one is based on vector manipulation only and it works!
-	//see PassiveMouseMotion() and Keyboard() also
-	gluLookAt(eyex, eyey, eyez, eyex + lookdirx, eyey, eyez + lookdirz, 0, 1, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix);
-	sidedirx = viewMatrix[0];
-	sidediry = viewMatrix[4];
-	sidedirz = viewMatrix[8];
 
-
-
-/*	GLfloat light_position[] = { 0.0, 10.0, 10.0, 1.0 };
-	GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
-	GLfloat light_specular[] = { 0.1, 0.1, 0.1, 1.0 };
-	GLfloat light_diffuse[] = { 1, 1, 1, 1.0 };
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);*/
-	//glShadeModel(GL_SMOOTH);
-
-	drawBase();
-	
+	glTranslatef(0.0f, -2.0f, -camera.fRadius);
+	glRotatef(camera.vecRot.x, 1.0f, 0.0f, 0.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
 	glPushMatrix();
-	GLfloat m[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, m);
-	glTranslatef(eyex + 3, eyey, eyez + lookdirz);
+	glRotatef(-90, 0.0f, 1.0f, 0.0f);
+
 	drawPlane();
 	glPopMatrix();
 
-	// swap the buffers
+	// Rotate the camera as necessary
+	glRotatef(camera.vecRot.y, 0.0f, 1.0f, 0.0f);
+	glTranslatef(-camera.vecPos.x, 0.0f, -camera.vecPos.z);
+
+	// Show camera's statistics
+	glColor3f(0.0f, 0.0f, 1.0f);
+
+	drawBase();
+
+	// Display graphics to the user
 	glutSwapBuffers();
-
 }
 
 
-// This function is continuously called when events are not being received
-// by the window.  This is a good place to update the state of your objects 
-// after every frame.
-void Idle() {
+//-----------------------------------------------------------------------------
+// Name: IdleFunction
+// Desc: The function that is executed whenever the program is idle
+//-----------------------------------------------------------------------------
+void IdleFunction(void)
+{
+	// Continue to display graphics even when messages aren't
+	// being processed.
 	glutPostRedisplay();
-
 }
 
-// keyboard handler
-float speed = .1;
-void Keyboard(unsigned char key, int, int)
+//-----------------------------------------------------------------------------
+// Name: KeyboardFunction
+// Desc: Handles keyboard input
+//-----------------------------------------------------------------------------
+void KeyboardFunction(GLubyte k, int x, int y)
 {
-	switch (key)
+	static float fRotSpeed = 1.0f;
+
+	if (k == 'q')
 	{
-		// if q, exit
-	case 'q':
-		quit(1);
-		break;
-	case 'w': //move forward
-		eyex += lookdirx*speed;
-		eyez += lookdirz*speed;
-		break;
-	case 's'://move backward
-		eyex -= lookdirx*speed;
-		eyez -= lookdirz*speed;
-		break;
-	case 'a':
-		break;
-	case 'd':
-		break;
+		camera.vecRot.x += fRotSpeed;
+		if (camera.vecRot.x > 360) camera.vecRot.x -= 360;
 	}
-}
-
-void MouseButton(int button, int state, int x, int y)
-{
-	switch (button)
+	if (k == 'z')
 	{
-	case GLUT_LEFT_BUTTON:
-		zpos += 1; // moves some of the geometry
-		break;
-	case GLUT_MIDDLE_BUTTON:
-		break;
-	case GLUT_RIGHT_BUTTON:
-		zpos -= 1;// moves some of the geometry
-		break;
+		camera.vecRot.x -= 1;
+		if (camera.vecRot.x < -360) camera.vecRot.x += 360;
 	}
+	if (k == 'w')
+	{
+		float xrotrad, yrotrad;
+		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
+		xrotrad = (camera.vecRot.x / 180.0f * 3.141592654f);
+		camera.vecPos.x += (float)(sin(yrotrad));
+		camera.vecPos.z -= (float)(cos(yrotrad));
+		camera.vecPos.y -= (float)(sin(xrotrad));
+	}
+	if (k == 's')
+	{
+		float xrotrad, yrotrad;
+		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
+		xrotrad = (camera.vecRot.x / 180.0f * 3.141592654f);
+		camera.vecPos.x -= (float)(sin(yrotrad));
+		camera.vecPos.z += (float)(cos(yrotrad));
+		camera.vecPos.y += (float)(sin(xrotrad));
+	}
+	if (k == 'd')
+	{
+		float yrotrad;
+		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
+		camera.vecPos.x += (float)(cos(yrotrad)) * 0.5f;
+		camera.vecPos.z += (float)(sin(yrotrad)) * 0.5f;
+	}
+	if (k == 'a')
+	{
+		float yrotrad;
+		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
+		camera.vecPos.x -= (float)(cos(yrotrad)) * 0.5f;
+		camera.vecPos.z -= (float)(sin(yrotrad)) * 0.5f;
+	}
+
+	if (k == 27)
+	{
+		exit(0);
+	}
+
+	// If not, then continue rendering
+	glutPostRedisplay();
 }
 
-float turnSpeed = .01; // how fast the mouse rotates the camera
-/*This implements a 1st person mouse look using only vectors. Think about better ways to do this...
-We make the default mouse position to be the center of the window. You could put it other places, but this is the safest place. Why? */
-void PassiveMouseMotion(int x, int y)
+//-----------------------------------------------------------------------------
+// Name: MouseFunction
+// Desc: Handles mouse input (movement)
+//-----------------------------------------------------------------------------
+void MouseFunction(int x, int y)
 {
+	int diffx = x - camera.fLastX;
+	int diffy = y - camera.fLastY;
 
-	//did we move the mouse at all?
-	int deltaX = x - imageWidth / 2;
-	int deltaY = y - imageHeight / 2;
+	camera.fLastX = x;
+	camera.fLastY = y;
 
+	camera.vecRot.x += (float)diffy;
+	camera.vecRot.y += (float)diffx;
 
-	if (deltaX == 0 && deltaY == 0) return; //if we didnt move the mouse, dont do anything
-
-	// update the look direction based on the side direction and which way we moved the mouse
-	lookdirx += sidedirx*deltaX*turnSpeed;
-	lookdirz += sidedirz*deltaX*turnSpeed;
-	glutWarpPointer(imageWidth / 2, imageHeight / 2); // put the cursor back to the center of the screen
-
-
+	glutWarpPointer(640 / 2, 480 / 2);
 }
 
-// This functions handles what happens when the window is reshaped
-void Reshape(int w, int h)
+
+//-----------------------------------------------------------------------------
+// Name: ReshapeFunction
+// Desc: Changes the viewport when the window is resized
+//-----------------------------------------------------------------------------
+void ReshapeFunction(GLsizei width, GLsizei height)
 {
-	imageWidth = w;
-	imageHeight = h;
-	glViewport(0, 0, w, h);
-	double aspect = ((double)w) / ((double)h);
+	// Prevent divide by zero exception
+	if (!height) height = 1;
+
+	// Reset viewport
+	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60, aspect, .01, 1000);
-	//glOrtho(-2,2,-2,2,1,100);
 
+	// Reset perspective
+	gluPerspective(45.0f, (GLdouble)width / height, 0.1f, 500.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
-// a cleanup function.  call this when you want to exit.
-void quit(int i)
+
+//-----------------------------------------------------------------------------
+// Name: main
+// Desc: Program entry point.
+//-----------------------------------------------------------------------------
+int main(int argc, char* argv[])
 {
-	exit(i);
+	// Initialize OpenGL via GLUT library
+	glutInit(&argc, argv);
+	glutInitWindowSize(imageWidth, imageHeight);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
+	glutCreateWindow("Flight Sim");
+	//	glutFullScreen();
+
+	// Initialize scene objects and properties
+	InitScene();
+
+	// Set our input/output functions and begin the main loop
+	glutIdleFunc(IdleFunction);
+	glutDisplayFunc(DisplayFunction);
+	glutKeyboardFunc(KeyboardFunction);
+	glutReshapeFunc(ReshapeFunction);
+	glutPassiveMotionFunc(MouseFunction);
+	glutMainLoop();
+
+	return 0;
 }

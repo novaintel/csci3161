@@ -91,10 +91,10 @@ void drawPlane(){
 		glVertexPointer(3, GL_FLOAT, 0, currentPolygon.vectorPoints);
 		glNormalPointer(GL_FLOAT, 0, currentPolygon.normalPoints);
 		glColorPointer(3, GL_FLOAT, 0, currentPolygon.colorPoints);
-		//if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11)){}
+		if ((objectCount >= 4 && objectCount <= 5) || (objectCount == 11)){}
 		//	glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
-		//else
-		glDrawArrays(GL_LINE_LOOP, 0, currentPolygon.numIndices);
+		else
+		glDrawArrays(GL_POLYGON, 0, currentPolygon.numIndices);
 		colourCount++;
 		if (objectCount < numPolygonObject.size()){
 			if (numPolygonObject[objectCount] == colourCount){
