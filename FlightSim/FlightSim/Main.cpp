@@ -11,6 +11,15 @@
 // Default Image dimensions
 int imageWidth = 640;
 int imageHeight = 480;
+float currentMouseX, currentMouseY;
+float planeHeight = 0;
+bool fullscreen = false;
+GLUquadricObj *cylinder;
+int rotate = 0;
+void loadImage();
+
+// the image data
+GLubyte *imageData;
 
 //-----------------------------------------------------------------------------
 // 3D vector
@@ -45,9 +54,11 @@ int InitScene(void)
 	// Set default render states
 	//
 
-
+	loadImage();
 	objectReaderInit();
 	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
+
+	cylinder = gluNewQuadric();
 
 	// Enable depth testing 
 	glEnable(GL_DEPTH_TEST);
@@ -86,7 +97,7 @@ int InitScene(void)
 	//
 
 	memset(&camera, 0, sizeof(struct ThirdPersonCamera_t));
-	camera.fRadius = 10.0f;
+	camera.fRadius = 7.0f;
 
 
 	return GL_TRUE;
@@ -102,11 +113,13 @@ void DisplayFunction(void)
 	glLoadIdentity();
 
 	glTranslatef(0.0f, -2.0f, -camera.fRadius);
-	glRotatef(camera.vecRot.x, 1.0f, 0.0f, 0.0f);
+	//glRotatef(camera.vecRot.x, 1.0f, 0.0f, 0.0f);
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glPushMatrix();
 	glRotatef(-90, 0.0f, 1.0f, 0.0f);
 
+	glRotatef(rotate, 1.0f, 0.0f, 0.0f);
+	glTranslatef(0.0f, planeHeight, 0.0f);
 	drawPlane();
 	glPopMatrix();
 
@@ -119,8 +132,137 @@ void DisplayFunction(void)
 
 	drawBase();
 
+
+	glPushMatrix();
+	glRotatef(-90, 1.0f, 0.0f, 0.0f);
+	gluQuadricDrawStyle(cylinder, GLU_FILL); /* smooth shaded */
+	gluQuadricNormals(cylinder, GLU_SMOOTH);
+	gluCylinder(cylinder, 50.0, 50.0, 6.0, 20, 100);
+	glPopMatrix();
+
 	// Display graphics to the user
 	glutSwapBuffers();
+}
+
+
+/************************************************************************
+
+Function:		loadImage
+
+Description:	Loads in the PPM image
+
+*************************************************************************/
+void loadImage()
+{
+
+
+	// the ID of the image file
+	FILE *fileID;
+
+	// maxValue
+	int  maxValue;
+
+	// total number of pixels in the image
+	int  totalPixels;
+
+	// temporary character
+	char tempChar;
+
+	// counter variable for the current pixel in the image
+	int i;
+
+	// array for reading in header information
+	char headerLine[100];
+
+	float RGBScaling;
+
+	// temporary variables for reading in the red, green and blue data of each pixel
+	int red, green, blue;
+
+	// open the image file for reading
+	fileID = fopen("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\sky08.ppm", "r");
+
+	// read in the first header line
+	fscanf(fileID, "%[^\n] ", headerLine);
+
+	// make sure that the image begins with 'P3', which signifies a PPM file
+	if ((headerLine[0] != 'P') || (headerLine[1] != '3'))
+	{
+		printf("This is not a PPM file!\n");
+		exit(0);
+	}
+
+	// we have a PPM file
+	printf("This is a PPM file\n");
+
+	// read in the first character of the next line
+	fscanf(fileID, "%c", &tempChar);
+
+	// while we still have comment lines (which begin with #)
+	while (tempChar == '#')
+	{
+		// read in the comment
+		fscanf(fileID, "%[^\n] ", headerLine);
+
+		// print the comment
+		printf("%s\n", headerLine);
+
+		// read in the first character of the next line
+		fscanf(fileID, "%c", &tempChar);
+	}
+
+	// the last one was not a comment character '#', so we nee dto put it back into the file stream (undo)
+	ungetc(tempChar, fileID);
+
+	// read in the image hieght, width and the maximum value
+	fscanf(fileID, "%d %d %d", &imageWidth, &imageHeight, &maxValue);
+
+	// print out the information about the image file
+	printf("%d rows  %d columns  max value= %d\n", imageHeight, imageWidth, maxValue);
+
+	// compute the total number of pixels in the image
+	totalPixels = imageWidth * imageHeight;
+
+	// allocate enough memory for the image  (3*) because of the RGB data
+	imageData = (GLubyte*)malloc(3 * sizeof(GLuint)* totalPixels);
+
+
+	// determine the scaling for RGB values
+	RGBScaling = 255.0 / maxValue;
+
+
+	// if the maxValue is 255 then we do not need to scale the 
+	//    image data values to be in the range or 0 to 255
+	if (maxValue == 255)
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileID, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			imageData[3 * totalPixels - 3 * i - 3] = red;
+			imageData[3 * totalPixels - 3 * i - 2] = green;
+			imageData[3 * totalPixels - 3 * i - 1] = blue;
+		}
+	}
+	else  // need to scale up the data values
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileID, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			imageData[3 * totalPixels - 3 * i - 3] = red   * RGBScaling;
+			imageData[3 * totalPixels - 3 * i - 2] = green * RGBScaling;
+			imageData[3 * totalPixels - 3 * i - 1] = blue  * RGBScaling;
+		}
+	}
+
+
+	// close the image file
+	fclose(fileID);
 }
 
 
@@ -130,6 +272,12 @@ void DisplayFunction(void)
 //-----------------------------------------------------------------------------
 void IdleFunction(void)
 {
+	float xrotrad, yrotrad;
+	yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
+	xrotrad = (camera.vecRot.x / 180.0f * 3.141592654f);
+	camera.vecPos.x += (float)(sin(yrotrad));
+	camera.vecPos.z -= (float)(cos(yrotrad));
+	camera.vecPos.y -= (float)(sin(xrotrad));
 	// Continue to display graphics even when messages aren't
 	// being processed.
 	glutPostRedisplay();
@@ -143,56 +291,55 @@ void KeyboardFunction(GLubyte k, int x, int y)
 {
 	static float fRotSpeed = 1.0f;
 
-	if (k == 'q')
+	if (k == 'f')
 	{
-		camera.vecRot.x += fRotSpeed;
-		if (camera.vecRot.x > 360) camera.vecRot.x -= 360;
-	}
-	if (k == 'z')
-	{
-		camera.vecRot.x -= 1;
-		if (camera.vecRot.x < -360) camera.vecRot.x += 360;
+		if (!fullscreen){
+			glutFullScreen();
+			fullscreen = true;
+		}
+		else {
+			glutLeaveFullScreen();
+			fullscreen = false;
+		}
 	}
 	if (k == 'w')
 	{
-		float xrotrad, yrotrad;
-		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
-		xrotrad = (camera.vecRot.x / 180.0f * 3.141592654f);
-		camera.vecPos.x += (float)(sin(yrotrad));
-		camera.vecPos.z -= (float)(cos(yrotrad));
-		camera.vecPos.y -= (float)(sin(xrotrad));
-	}
-	if (k == 's')
-	{
-		float xrotrad, yrotrad;
-		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
-		xrotrad = (camera.vecRot.x / 180.0f * 3.141592654f);
-		camera.vecPos.x -= (float)(sin(yrotrad));
-		camera.vecPos.z += (float)(cos(yrotrad));
-		camera.vecPos.y += (float)(sin(xrotrad));
-	}
-	if (k == 'd')
-	{
-		float yrotrad;
-		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
-		camera.vecPos.x += (float)(cos(yrotrad)) * 0.5f;
-		camera.vecPos.z += (float)(sin(yrotrad)) * 0.5f;
-	}
-	if (k == 'a')
-	{
-		float yrotrad;
-		yrotrad = (camera.vecRot.y / 180.0f * 3.141592654f);
-		camera.vecPos.x -= (float)(cos(yrotrad)) * 0.5f;
-		camera.vecPos.z -= (float)(sin(yrotrad)) * 0.5f;
+		setWireFrame(!getWireFrame());
 	}
 
-	if (k == 27)
+	if (k == 'q')
 	{
 		exit(0);
 	}
 
 	// If not, then continue rendering
 	glutPostRedisplay();
+}
+
+void pressKey(int key, int x, int y) {
+
+	switch (key) {
+	case GLUT_KEY_UP: planeHeight += 0.1;  break;
+	case GLUT_KEY_DOWN: planeHeight -= 0.1;  break;
+	}
+}
+
+void releaseKey(int key, int x, int y) {
+
+	/*switch (key) {
+	case GLUT_KEY_LEFT: if (deltaAngle < 0.0f)
+	deltaAngle = 0.0f;
+	break;
+	case GLUT_KEY_RIGHT: if (deltaAngle > 0.0f)
+	deltaAngle = 0.0f;
+	break;
+	case GLUT_KEY_UP:  if (deltaMove > 0)
+	deltaMove = 0;
+	break;
+	case GLUT_KEY_DOWN: if (deltaMove < 0)
+	deltaMove = 0;
+	break;
+	}*/
 }
 
 //-----------------------------------------------------------------------------
@@ -203,6 +350,16 @@ void MouseFunction(int x, int y)
 {
 	int diffx = x - camera.fLastX;
 	int diffy = y - camera.fLastY;
+
+	if (diffx < 0){
+		rotate = 45;
+	}
+	else if (diffx > 0){
+		rotate = -45;
+	}
+	else{
+		rotate = 0;
+	}
 
 	camera.fLastX = x;
 	camera.fLastY = y;
@@ -252,6 +409,9 @@ int main(int argc, char* argv[])
 	InitScene();
 
 	// Set our input/output functions and begin the main loop
+	glutSpecialFunc(pressKey);
+	glutSpecialUpFunc(releaseKey);
+
 	glutIdleFunc(IdleFunction);
 	glutDisplayFunc(DisplayFunction);
 	glutKeyboardFunc(KeyboardFunction);
