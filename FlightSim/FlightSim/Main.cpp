@@ -7,6 +7,7 @@
 #include "BaseScene.h"
 #include "objectReader.h"
 #include "imageloader.h"
+#include "Mountain.h"
 #include <GL\freeglut.h>
 
 // Default Image dimensions
@@ -15,6 +16,7 @@ int imageHeight = 480;
 float currentMouseX, currentMouseY;
 float planeHeight = 0;
 bool fullscreen = false;
+int lastRotate = 0;
 int rotate = 0;
 bool isSeaSky = false;
 
@@ -94,8 +96,8 @@ void initRendering() {
 	Sea = gluNewQuadric();
 
 
-	Image* imageSky = loadBMP("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\sky08.bmp");
-	Image* imageSea = loadBMP("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\sea02.bmp");
+	Image* imageSky = loadBMP("sky08.bmp");
+	Image* imageSea = loadBMP("sea02.bmp");
 
 	_textureSkyId = loadTexture(imageSky);
 	_textureSeaId = loadTexture(imageSea);
@@ -113,7 +115,7 @@ void initRendering() {
 int InitScene(void)
 {
 	objectReaderInit();
-	readFile("C:\\Users\\James\\Documents\\code\\School\\csci3161\\FlightSim\\cessna.txt");
+	readFile("cessna.txt");
 
 	glMatrixMode(GL_PROJECTION);
 	glViewport(0, 0, imageWidth, imageHeight);
@@ -158,6 +160,7 @@ int InitScene(void)
 
 	return GL_TRUE;
 }
+
 
 void DisplayFunction(void)
 {
@@ -210,7 +213,7 @@ void DisplayFunction(void)
 			gluQuadricTexture(Sky, 1);
 			glRotatef(-90, 1.0f, 0.0f, 0.0f);
 			glTranslatef(0.0f, 0.0f, -1.5f);
-			gluCylinder(Sky, 50, 50, 100, 32, 32);
+			gluCylinder(Sky, 100, 100, 100, 32, 32);
 			glDisable(GL_TEXTURE_2D);
 			glPopMatrix();
 
@@ -222,8 +225,27 @@ void DisplayFunction(void)
 			gluQuadricTexture(Sea, 1);
 			glRotatef(-90, 1.0f, 0.0f, 0.0f);
 			glTranslatef(0.0f, 0.0f, -1.0f);
-			gluDisk(Sea, 0, 50, 32, 32);
+			gluDisk(Sea, 0, 100, 32, 32);
 			glDisable(GL_TEXTURE_2D);
+			glPopMatrix();
+
+			glPushMatrix();
+			glRotatef(-90, 1.0f, 0.0f, 0.0f);
+			glTranslatef(50.0f, 30.0f, -4.5f);
+			landgen();
+			glPopMatrix();
+
+
+			glPushMatrix();
+			glRotatef(-90, 1.0f, 0.0f, 0.0f);
+			glTranslatef(-30.0f, 80.0f, -4.5f);
+			landgen();
+			glPopMatrix();
+
+			glPushMatrix();
+			glRotatef(-90, 1.0f, 0.0f, 0.0f);
+			glTranslatef(-70.0f, -45.0f, -4.5f);
+			landgen();
 			glPopMatrix();
 		}
 	}
@@ -329,6 +351,7 @@ void MouseFunction(int x, int y)
 	int diffx = x - camera.fLastX;
 	int diffy = y - camera.fLastY;
 
+	
 	if (diffx < 0){
 		rotate = 45;
 	}

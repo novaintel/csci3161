@@ -27,6 +27,9 @@
     <ClCompile Include="imageloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Mountain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseScene.h">
@@ -38,5 +41,27 @@
     <ClInclude Include="imageloader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mountain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="mount03.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="sea02.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="sky08.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="cessna.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="propeller.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
