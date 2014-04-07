@@ -2,7 +2,7 @@
 
 bool wireframe = true;
 #define M_PI 3.14159265358979323846
-const int gridRadius = 25;
+const int gridRadius = 100;
 
 void drawBase(){
 	// Draw a white grid "floor" for the tetrahedron to sit on.
@@ -14,25 +14,33 @@ void drawBase(){
 
 
 
-	glBegin(GL_POLYGON);
-	glColor3f(0.8, 0.8, 0.8);
-	for (GLfloat i = -gridRadius; i <= gridRadius; i += 0.50) {
-		glVertex3f(i, 0, gridRadius); glVertex3f(i, 0, -gridRadius);
-		glVertex3f(gridRadius, 0, i); glVertex3f(-gridRadius, 0, i);
-	}
+	glColor3f(.8, .8, .8);
+	glBegin(GL_QUADS);
+	glVertex3f(-gridRadius, -0.001, -gridRadius);
+	glVertex3f(-gridRadius, -0.001, gridRadius);
+	glVertex3f(gridRadius, -0.001, gridRadius);
+	glVertex3f(gridRadius, -0.001, -gridRadius);
 	glEnd();
 
+	glBegin(GL_LINES);
+	for (int i = -gridRadius; i <= gridRadius; i++) {
+	    glColor3f(.8, .8, .8);
+		glVertex3f(i, 0, -gridRadius);
+		glVertex3f(i, 0, gridRadius);
+		glVertex3f(-gridRadius, 0, i);
+		glVertex3f(gridRadius, 0, i);
+	};
+	glEnd();
 
-
-
-
+	
+	glLineWidth(10);
 	glBegin(GL_LINES);
 	glColor3f(1, 0, 0); glVertex3f(0, 0, 0); glVertex3f(10, 0, 0);
 	glColor3f(0, 1, 0); glVertex3f(0, 0, 0); glVertex3f(0, 10, 0);
 	glColor3f(0, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 0, 10);
 	glColor3f(1.0, 1.0, 1.0);
 	glEnd();
-
+	glLineWidth(1);
 
 
 	if (wireframe){
